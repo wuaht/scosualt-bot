@@ -1,18 +1,42 @@
 import requests
-from nextcord.ext import commands
+from helpers import get_args
 
-class APIClient(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class APIClient():
+    def __init__(self):
         self.url = 'https://api.scosu.net/v1'
-    def get_clears(self):
-        api_url = f'{self.url}/get_clears/'
-        response = requests.get(api_url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print(f"Fehler: {response.status_code}")
-            return None
+    def get_clears(self, arg):
 
-def setup(bot):
-    bot.add_cog(APIClient(bot))
+        args = get_args(arg)
+        try:
+            mode = int(args.get('-mode'))
+        except:
+            mode = args.get('-mode')
+        mode_url = ''
+        try:
+            length = int(args.get('-l') or args.get('-length'))
+        except:
+            length = args.get('-l') or args.get('-length')
+        length_url = ''
+
+        if isinstance(mode, int):
+            if mode != 0 and mode > 0 and mode < 9 and mode != 7:
+                mode_url = f'mode={mode}'
+        if isinstance(length, int):
+            if length != 10 and length > 0 and length < 51:
+                length_url = f'user_limit={length}'
+
+        api_url = f'{self.url}/get_clears/'
+        if mode_url != '':
+            if api_url.__contains__('?'):
+                api_url = api_url + '&' + mode_url
+            else:
+                api_url = api_url + '?' + mode_url
+        if length_url != '':
+            if api_url.__contains__('?'):
+                api_url = api_url + '&' + length_url
+            else:
+                api_url = api_url + '?' + length_url
+
+        response = requests.get(api_url)
+        return response, mode
+
